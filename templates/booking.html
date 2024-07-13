@@ -30,7 +30,7 @@
 </html> -->
 
 
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <head>
     <title>Booking</title>
@@ -55,4 +55,223 @@
         <button type="submit">Book</button>
     </form>
 </body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Parking Booking</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 1em 0;
+            text-align: center;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        nav ul li {
+            display: inline;
+            margin: 0 10px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+        .container {
+            width: 30%;
+            margin: 2em auto;
+            background-color: white;
+            padding: 2em;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .booking-form {
+            display: flex;
+            flex-direction: column;
+        }
+        .booking-form label {
+            margin-bottom: 0.5em;
+        }
+        .booking-form input, .booking-form select {
+            margin-bottom: 1em;
+            padding: 0.5em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .booking-form button {
+            padding: 0.75em;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .booking-form button:hover {
+            background-color: #555;
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 1em 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .vacant {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .occupied {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        .iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        .container1 {
+            width: 50%;
+            margin: 6rem auto;
+            background-color: white;
+            padding: 2em;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to Car Parking Booking</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/login">Login</a></li>
+                <li><a href="/signup">Signup</a></li>
+                <!-- <li><a href="/booking">Book a Slot</a></li> -->
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="container">
+        <h2>Book Your Parking Slot</h2>
+        <form class="booking-form" method="post">
+            {% csrf_token %}
+        {{ form.as_p }}
+        {% if form.errors %}
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        <button type="submit">Book</button>
+        </form>
+    </div>
+    
+    <div class="container1">
+        <table id="parkingTable">
+            <thead>
+                <tr>
+                    <th>Parking Area</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dynamic content will be inserted here -->
+            </tbody>
+        </table>
+    </div>
+    <footer>
+        <p>&copy; 2024 Car Parking Booking. All rights reserved.</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyCXBoNAFbX3JjRWg-1A79ajH8kYJBxCJ2s",
+            authDomain: "esp8266.firebaseapp.com",
+            databaseURL: "https://esp8266-42fe7-default-rtdb.firebaseio.com",
+            projectId: "esp8266",
+            storageBucket: "esp8266.appspot.com",
+            messagingSenderId: "1091702081490"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Reference to the database service
+        var database = firebase.database();
+
+        // Function to fetch and display parking status
+        function fetchParkingStatus() {
+            database.ref('parking_status').on('value', (snapshot) => {
+                const parkingData = snapshot.val();
+                const tableBody = document.getElementById('parkingTable').getElementsByTagName('tbody')[0];
+                tableBody.innerHTML = ''; // Clear existing rows
+
+                for (let area in parkingData) {
+                    let row = tableBody.insertRow();
+                    let cell1 = row.insertCell(0);
+                    let cell2 = row.insertCell(1);
+                    cell1.textContent = area;
+                    cell2.textContent = parkingData[area];
+
+                    // Add class based on status
+                    if (parkingData[area] === 'vacant') {
+                        cell2.classList.add('vacant');
+                    } else if (parkingData[area] === 'occupied') {
+                        cell2.classList.add('occupied');
+                    }
+                }
+            });
+        }
+
+        // Fetch parking status on load
+        window.onload = fetchParkingStatus;
+    </script>
+</body>
 </html>
+
+
